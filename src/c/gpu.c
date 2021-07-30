@@ -156,9 +156,9 @@ int main(int argc, char *argv[]) {
                 // -- SUBTASK 1: EXCHANGE GHOST CELLS -- //
                 // ////////////////////////////////////////
 
-#pragma acc update host(                                                       \
-    temperatures [1:1] [0:COLUMNS_PER_MPI_PROCESS], temperatures               \
-    [ROWS_PER_MPI_PROCESS:ROWS_PER_MPI_PROCESS] [0:COLUMNS_PER_MPI_PROCESS])
+#pragma acc update host(temperatures [1:1] [0:COLUMNS_PER_MPI_PROCESS],        \
+                        temperatures                                           \
+                        [ROWS_PER_MPI_PROCESS:1] [0:COLUMNS_PER_MPI_PROCESS])
                 // Send data to up neighbour for its ghost cells. If my
                 // up_neighbour_rank is MPI_PROC_NULL, this MPI_Ssend will do
                 // nothing.
@@ -186,10 +186,10 @@ int main(int argc, char *argv[]) {
                 MPI_Recv(&temperatures_last[0][0], COLUMNS_PER_MPI_PROCESS,
                          MPI_DOUBLE, up_neighbour_rank, MPI_ANY_TAG,
                          MPI_COMM_WORLD, MPI_STATUS_IGNORE);
-#pragma acc update device(temperatures_last                                    \
-                          [ROWS_PER_MPI_PROCESS + 1:ROWS_PER_MPI_PROCESS + 1]  \
-                          [0:COLUMNS_PER_MPI_PROCESS],                         \
-                          temperatures_last [0:0] [0:COLUMNS_PER_MPI_PROCESS])
+#pragma acc update device(                                                     \
+    temperatures_last                                                          \
+    [ROWS_PER_MPI_PROCESS + 1:1] [0:COLUMNS_PER_MPI_PROCESS],                  \
+    temperatures_last [0:1] [0:COLUMNS_PER_MPI_PROCESS])
 
 /////////////////////////////////////////////
 // -- SUBTASK 2: PROPAGATE TEMPERATURES -- //
@@ -323,8 +323,8 @@ int main(int argc, char *argv[]) {
                                global_temperature_change);
                     } else {
                         // Send my array to the master MPI process
-#pragma acc update host(                                                       \
-    temperatures [1:ROWS_PER_MPI_PROCESS + 1] [0:COLUMNS_PER_MPI_PROCESS])
+#pragma acc update host(temperatures                                           \
+                        [1:ROWS_PER_MPI_PROCESS] [0:COLUMNS_PER_MPI_PROCESS])
                         MPI_Ssend(
                             &temperatures[1][0],
                             ROWS_PER_MPI_PROCESS * COLUMNS_PER_MPI_PROCESS,
